@@ -1,0 +1,9 @@
+[INFO]: 2023-05-28 23:16:39 - PostgreSQL запущена на localhost:5432 
+
+[INFO]: 2023-05-28 23:16:39 - Redis запущен на localhost:6379 
+
+[INFO]: 2023-05-28 23:16:39 - Клиент gRPC подключен к серверу на localhost:50051 
+
+[INFO]: 2023-05-28 23:16:39 - Запуск сервера на localhost:8080
+[WARNING]: 2023-05-28 22:30:10 - username does not exist
+[WARNING]: 2023-05-28 22:31:43 - User does not exist
