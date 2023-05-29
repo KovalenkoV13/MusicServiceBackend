@@ -68,21 +68,21 @@ func (m *MusicController) CreateMusic(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Allow", http.MethodPost)
 	fmt.Printf("music: %s /\n", r.Method)
 
-	//jwtStr := r.Header.Get("Authorization")
-	//if !strings.HasPrefix(jwtStr, jwtPrefix) {
-	//	http.Error(w, "Forbidden", http.StatusForbidden)
-	//	return
-	//}
-	//jwtStr = jwtStr[len(jwtPrefix)+1:]
-	//token, errT := jwt.ParseWithClaims(jwtStr, &JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
-	//	return []byte("MusicService"), nil
-	//})
-	//if errT != nil {
-	//	log.Println(errT)
-	//	return
-	//}
-	//
-	//myClaims := token.Claims.(*JWTClaims)
+	jwtStr := r.Header.Get("Authorization")
+	if !strings.HasPrefix(jwtStr, jwtPrefix) {
+		http.Error(w, "Forbidden", http.StatusForbidden)
+		return
+	}
+	jwtStr = jwtStr[len(jwtPrefix)+1:]
+	token, errT := jwt.ParseWithClaims(jwtStr, &JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
+		return []byte("MusicService"), nil
+	})
+	if errT != nil {
+		log.Println(errT)
+		return
+	}
+
+	myClaims := token.Claims.(*JWTClaims)
 
 	errParse := r.ParseMultipartForm(32 << 20)
 	if errParse != nil {
@@ -110,7 +110,7 @@ func (m *MusicController) CreateMusic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	_, err := m.repo.CreateMusic(r.FormValue("title"), r.FormValue("img"), 1, handler.Filename, m.grpc)
+	_, err := m.repo.CreateMusic(r.FormValue("title"), r.FormValue("img"), myClaims.Id, handler.Filename, m.grpc)
 	if err != nil {
 		m.log.Warnf("create music err %s", err)
 		return
