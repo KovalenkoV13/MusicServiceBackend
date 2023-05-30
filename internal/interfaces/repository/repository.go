@@ -19,6 +19,7 @@ type IUsersRepo interface {
 
 type IPlaylistRepo interface {
 	GetPlaylist(userId int) ([]model.Musicforplaylist, error)
+	GetPlaylistArtist(artistId int) ([]model.Musicforplaylist, error)
 	AddMusicToPlaylist(musicID, playlistID int) (int, error)
 	GetIdPlaylist(userId int) (*model.Playlist, error)
 	DeleteMusicFromPlaylist(musicID, userId int) (int, error)

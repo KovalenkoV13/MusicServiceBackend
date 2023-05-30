@@ -28,6 +28,19 @@ func (p *PlaylistRepo) GetPlaylist(userId int) ([]model.Musicforplaylist, error)
 	return pl, nil
 }
 
+func (p *PlaylistRepo) GetPlaylistArtist(artistId int) ([]model.Musicforplaylist, error) {
+	var pl []model.Musicforplaylist
+	result := p.db.Table("music").Select("music.id, music.title, users.username, music.file, music.img").Joins("JOIN users ON users.id = music.author").Where("users.id = $1", artistId).Scan(&pl)
+	if result.Error != nil {
+		fmt.Printf("db: %w", result.Error)
+		return nil, result.Error
+	}
+	if len(pl) == 0 {
+		return nil, nil
+	}
+	return pl, nil
+}
+
 func (p *PlaylistRepo) AddMusicToPlaylist(musicID, playlistID int) (int, error) {
 	currentTime := time.Now()
 	mModel := &model.PlaylistMusic{
