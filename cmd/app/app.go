@@ -98,6 +98,7 @@ func NewApp(ctx context.Context) (*Application, error) {
 		AllowedMethods: []string{
 			http.MethodPost,
 			http.MethodGet,
+			http.MethodDelete,
 		},
 		AllowedHeaders:   []string{"*"},
 		AllowCredentials: false,
@@ -106,18 +107,18 @@ func NewApp(ctx context.Context) (*Application, error) {
 	router.Use(mux.CORSMethodMiddleware(router))
 
 	playlist := router.Methods("GET", "POST", "DELETE").Subrouter()
-	playlist.Handle("/playlist", app.WithAuthCheck(http.HandlerFunc(app.playlistController.GetAll), role.User)).Methods("GET")
+	playlist.Handle("/playlist", app.WithAuthCheck(http.HandlerFunc(app.playlistController.GetAll), role.Artist, role.User)).Methods("GET")
 	playlist.Handle("/playlist", app.WithAuthCheck(http.HandlerFunc(app.playlistController.AddMusicToPlaylist), role.User)).Methods("POST")
 	playlist.Handle("/playlist/{id:[0-9]+}", app.WithAuthCheck(http.HandlerFunc(app.playlistController.DeleteMusicFromPlaylist), role.User)).Methods("DELETE")
 	music := router.Methods("POST", "DELETE").Subrouter()
 	music.Handle("/music", app.WithAuthCheck(http.HandlerFunc(app.musicController.CreateMusic), role.Artist)).Methods("POST")
-	music.Handle("/music/{id:[0-9]+}", app.WithAuthCheck(http.HandlerFunc(app.musicController.DeleteMusic), role.Artist)).Methods("DELETE")
+	music.Handle("/music/{id:[0-9]+}", app.WithAuthCheck(http.HandlerFunc(app.musicController.DeleteMusic), role.Moderator)).Methods("DELETE")
 	router.HandleFunc("/music", app.musicController.GetAll).Methods("GET")
 	//router.HandleFunc("/music", app.musicController.CreateMusic).Methods("POST")
 	//router.HandleFunc("/music{search}", app.musicController.GetOne).Methods("GET")
 	router.HandleFunc("/signup", app.userController.Register).Methods("POST")
 	router.HandleFunc("/signin", app.userController.Login).Methods("POST")
-	router.HandleFunc("/signout", app.userController.Logout).Methods("GET")
+	router.HandleFunc("/signout", app.userController.Logout).Methods("POST")
 
 	log.Println("Запуск сервера на localhost:8080")
 	handler := cors.Handler(router)

@@ -17,6 +17,7 @@ const jwtPrefix = "Bearer "
 func (a *Application) WithAuthCheck(next http.Handler, assignedRoles ...role.Role) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		jwtStr := r.Header.Get("Authorization")
+		f := false
 		if !strings.HasPrefix(jwtStr, jwtPrefix) {
 			http.Error(w, "Forbidden", http.StatusForbidden)
 			return
@@ -43,10 +44,14 @@ func (a *Application) WithAuthCheck(next http.Handler, assignedRoles ...role.Rol
 
 		for _, oneOfAssignedRole := range assignedRoles {
 			if myClaims.Role == oneOfAssignedRole {
+				fmt.Println(oneOfAssignedRole)
 				next.ServeHTTP(w, r)
-			} else {
-				http.Error(w, "Forbidden", http.StatusForbidden)
+				f = true
 			}
+		}
+		if f != true {
+			fmt.Println("kfdnfdk")
+			http.Error(w, "Forbidden", http.StatusForbidden)
 		}
 		log.Printf("role %s is not assigned in %s", myClaims.Role, assignedRoles)
 		return
