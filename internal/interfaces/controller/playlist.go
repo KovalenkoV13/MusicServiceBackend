@@ -3,6 +3,7 @@ package controller
 import (
 	"MusicServiceBackend/internal/interfaces/repository"
 	"MusicServiceBackend/internal/model"
+	"MusicServiceBackend/internal/role"
 	"encoding/json"
 	"fmt"
 	"github.com/golang-jwt/jwt"
@@ -57,13 +58,21 @@ func (p *PlaylistController) GetAll(w http.ResponseWriter, r *http.Request) {
 	}
 
 	myClaims := token.Claims.(*JWTClaims)
-
-	res, err := p.repo.GetPlaylist(myClaims.Id)
-	if err != nil {
-		fmt.Fprintf(w, "Ошибка: данных для вывода нет")
-		return
+	if myClaims.Role != role.Artist {
+		res, err := p.repo.GetPlaylist(myClaims.Id)
+		if err != nil {
+			fmt.Fprintf(w, "Ошибка: данных для вывода нет")
+			return
+		}
+		json.NewEncoder(w).Encode(res)
+	} else {
+		res, err := p.repo.GetPlaylistArtist(myClaims.Id)
+		if err != nil {
+			fmt.Fprintf(w, "Ошибка: данных для вывода нет")
+			return
+		}
+		json.NewEncoder(w).Encode(res)
 	}
-	json.NewEncoder(w).Encode(res)
 	p.log.Infof("got playlist")
 	return
 }
