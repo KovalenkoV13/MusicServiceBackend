@@ -2,6 +2,8 @@ package controller
 
 import (
 	"MusicServiceBackend/internal/interfaces/repository"
+	"MusicServiceBackend/internal/interfaces/responses"
+	"MusicServiceBackend/internal/redis"
 	"encoding/json"
 	"fmt"
 	"github.com/golang-jwt/jwt"
@@ -15,11 +17,6 @@ import (
 	"strconv"
 	"strings"
 )
-
-type respCr struct {
-	Ok              bool   `json:"ok"`
-	CreateComponent string `json:"create_component"`
-}
 
 type MusicController struct {
 	repo repository.IMusicRepo
@@ -74,7 +71,7 @@ func (m *MusicController) CreateMusic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	jwtStr = jwtStr[len(jwtPrefix)+1:]
-	token, errT := jwt.ParseWithClaims(jwtStr, &JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
+	token, errT := jwt.ParseWithClaims(jwtStr, &redis.JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte("MusicService"), nil
 	})
 	if errT != nil {
@@ -82,7 +79,7 @@ func (m *MusicController) CreateMusic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	myClaims := token.Claims.(*JWTClaims)
+	myClaims := token.Claims.(*redis.JWTClaims)
 
 	errParse := r.ParseMultipartForm(32 << 20)
 	if errParse != nil {
@@ -120,8 +117,7 @@ func (m *MusicController) CreateMusic(w http.ResponseWriter, r *http.Request) {
 	if e != nil {
 		log.Fatal(e)
 	}
-
-	resp := &respCr{
+	resp := &responses.RespCr{
 		Ok:              true,
 		CreateComponent: r.FormValue("title"),
 	}
@@ -138,7 +134,7 @@ func (m *MusicController) DeleteMusic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	jwtStr = jwtStr[len(jwtPrefix)+1:]
-	token, err := jwt.ParseWithClaims(jwtStr, &JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(jwtStr, &redis.JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte("MusicService"), nil
 	})
 	if err != nil {
@@ -146,7 +142,7 @@ func (m *MusicController) DeleteMusic(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	myClaims := token.Claims.(*JWTClaims)
+	myClaims := token.Claims.(*redis.JWTClaims)
 	ID, err := strconv.Atoi(id)
 	if err != nil {
 		panic(err)
@@ -155,7 +151,7 @@ func (m *MusicController) DeleteMusic(w http.ResponseWriter, r *http.Request) {
 	if errRes != nil {
 		log.Println(errRes)
 	}
-	resp := &respDel{
+	resp := &responses.RespDel{
 		Ok:           true,
 		Delcomponent: ID,
 		User:         myClaims.Id,

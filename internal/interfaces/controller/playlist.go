@@ -2,7 +2,9 @@ package controller
 
 import (
 	"MusicServiceBackend/internal/interfaces/repository"
+	"MusicServiceBackend/internal/interfaces/responses"
 	"MusicServiceBackend/internal/model"
+	"MusicServiceBackend/internal/redis"
 	"MusicServiceBackend/internal/role"
 	"encoding/json"
 	"fmt"
@@ -15,18 +17,6 @@ import (
 	"strconv"
 	"strings"
 )
-
-type respDel struct {
-	Ok           bool `json:"ok"`
-	Delcomponent int  `json:"del_component"`
-	User         int  `json:"user"`
-}
-
-type respAdd struct {
-	Ok           bool `json:"ok"`
-	Addcomponent int  `json:"add_component"`
-	User         int  `json:"user"`
-}
 
 type PlaylistController struct {
 	repo repository.IPlaylistRepo
@@ -49,7 +39,7 @@ func (p *PlaylistController) GetAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	jwtStr = jwtStr[len(jwtPrefix)+1:]
-	token, err := jwt.ParseWithClaims(jwtStr, &JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(jwtStr, &redis.JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte("MusicService"), nil
 	})
 	if err != nil {
@@ -57,7 +47,7 @@ func (p *PlaylistController) GetAll(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	myClaims := token.Claims.(*JWTClaims)
+	myClaims := token.Claims.(*redis.JWTClaims)
 	if myClaims.Role != role.Artist {
 		res, err := p.repo.GetPlaylist(myClaims.Id)
 		if err != nil {
@@ -88,7 +78,7 @@ func (p *PlaylistController) AddMusicToPlaylist(w http.ResponseWriter, r *http.R
 		return
 	}
 	jwtStr = jwtStr[len(jwtPrefix)+1:]
-	token, err := jwt.ParseWithClaims(jwtStr, &JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(jwtStr, &redis.JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte("MusicService"), nil
 	})
 	if err != nil {
@@ -96,7 +86,7 @@ func (p *PlaylistController) AddMusicToPlaylist(w http.ResponseWriter, r *http.R
 		return
 	}
 
-	myClaims := token.Claims.(*JWTClaims)
+	myClaims := token.Claims.(*redis.JWTClaims)
 
 	var pm model.PlaylistMusic
 
@@ -114,7 +104,7 @@ func (p *PlaylistController) AddMusicToPlaylist(w http.ResponseWriter, r *http.R
 		p.log.Warnf("create music err %s", errCr)
 		return
 	}
-	resp := &respAdd{
+	resp := &responses.RespAdd{
 		Ok:           true,
 		Addcomponent: pm.MusicId,
 		User:         myClaims.Id,
@@ -132,7 +122,7 @@ func (p *PlaylistController) DeleteMusicFromPlaylist(w http.ResponseWriter, r *h
 		return
 	}
 	jwtStr = jwtStr[len(jwtPrefix)+1:]
-	token, err := jwt.ParseWithClaims(jwtStr, &JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
+	token, err := jwt.ParseWithClaims(jwtStr, &redis.JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte("MusicService"), nil
 	})
 	if err != nil {
@@ -140,7 +130,7 @@ func (p *PlaylistController) DeleteMusicFromPlaylist(w http.ResponseWriter, r *h
 		return
 	}
 
-	myClaims := token.Claims.(*JWTClaims)
+	myClaims := token.Claims.(*redis.JWTClaims)
 	ID, err := strconv.Atoi(id)
 	if err != nil {
 		panic(err)
@@ -154,7 +144,7 @@ func (p *PlaylistController) DeleteMusicFromPlaylist(w http.ResponseWriter, r *h
 	if errRes != nil {
 		log.Println(errRes)
 	}
-	resp := &respDel{
+	resp := &responses.RespDel{
 		Ok:           true,
 		Delcomponent: ID,
 		User:         myClaims.Id,

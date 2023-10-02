@@ -2,9 +2,9 @@ package controller
 
 import (
 	"MusicServiceBackend/internal/interfaces/repository"
+	"MusicServiceBackend/internal/interfaces/responses"
 	"MusicServiceBackend/internal/model"
 	redisCl "MusicServiceBackend/internal/redis"
-	"MusicServiceBackend/internal/role"
 	"encoding/json"
 	"fmt"
 	"github.com/golang-jwt/jwt"
@@ -22,26 +22,6 @@ type UserController struct {
 	token string
 	log   *logrus.Logger
 	redis *redisCl.Client
-}
-
-type registerResp struct {
-	Ok bool `json:"ok"`
-}
-
-type JWTClaims struct {
-	jwt.StandardClaims
-	Id     int      `json:"id"`
-	Scopes []string `json:"scopes" json:"scopes"`
-	Role   role.Role
-}
-
-type loginResp struct {
-	ExpiresIn   time.Duration `json:"expires_in"`
-	AccessToken string        `json:"access_token"`
-	TokenType   string        `json:"token_type"`
-	Username    string        `json:"username"`
-	Email       string        `json:"email"`
-	Role        role.Role     `json:"role"`
 }
 
 const jwtPrefix = "Bearer"
@@ -68,7 +48,7 @@ func (u UserController) Register(w http.ResponseWriter, r *http.Request) {
 
 	if user.Password == "" {
 		u.log.Warnf("password does not exist")
-		reg := &registerResp{
+		reg := &responses.RegisterResp{
 			Ok: false,
 		}
 		json.NewEncoder(w).Encode(reg)
@@ -77,7 +57,7 @@ func (u UserController) Register(w http.ResponseWriter, r *http.Request) {
 
 	if user.Username == "" {
 		u.log.Warnf("username does not exist")
-		reg := &registerResp{
+		reg := &responses.RegisterResp{
 			Ok: false,
 		}
 		json.NewEncoder(w).Encode(reg)
@@ -87,14 +67,14 @@ func (u UserController) Register(w http.ResponseWriter, r *http.Request) {
 	_, err := u.repo.Register(user.Username, user.Password, user.Email)
 	if err != nil {
 		u.log.Warnf("register user err %s", err)
-		reg := &registerResp{
+		reg := &responses.RegisterResp{
 			Ok: false,
 		}
 		json.NewEncoder(w).Encode(reg)
 		return
 	}
 
-	reg := &registerResp{
+	reg := &responses.RegisterResp{
 		Ok: true,
 	}
 	json.NewEncoder(w).Encode(reg)
@@ -125,7 +105,7 @@ func (u UserController) Login(w http.ResponseWriter, r *http.Request) {
 	}
 	h, _ := time.ParseDuration("12h30m")
 	if user.Username == userLogin.Username && hash {
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, JWTClaims{
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, redisCl.JWTClaims{
 			StandardClaims: jwt.StandardClaims{
 				ExpiresAt: time.Now().Add(h).Unix(),
 				IssuedAt:  time.Now().Unix(),
@@ -147,7 +127,7 @@ func (u UserController) Login(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 
-		res := &loginResp{
+		res := &responses.LoginResp{
 			ExpiresIn:   h,
 			AccessToken: strToken,
 			TokenType:   "Bearer",
@@ -159,7 +139,7 @@ func (u UserController) Login(w http.ResponseWriter, r *http.Request) {
 		json.NewEncoder(w).Encode(res)
 	} else {
 		http.Error(w, "", http.StatusUnauthorized)
-		errLog := &registerResp{Ok: false}
+		errLog := &responses.RegisterResp{Ok: false}
 		json.NewEncoder(w).Encode(errLog)
 	}
 }
@@ -174,7 +154,7 @@ func (u UserController) Logout(w http.ResponseWriter, r *http.Request) {
 	jwtStr = jwtStr[len(jwtPrefix)+1:]
 	fmt.Printf("logout: %s /\n", jwtStr)
 
-	_, err := jwt.ParseWithClaims(jwtStr, &JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
+	_, err := jwt.ParseWithClaims(jwtStr, &redisCl.JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
 		return []byte("MusicService"), nil
 	})
 	if err != nil {
@@ -186,6 +166,6 @@ func (u UserController) Logout(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		return
 	}
-	resp := &registerResp{Ok: true}
+	resp := &responses.RegisterResp{Ok: true}
 	json.NewEncoder(w).Encode(resp)
 }
