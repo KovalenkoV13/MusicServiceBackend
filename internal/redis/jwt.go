@@ -1,9 +1,18 @@
 package redis
 
 import (
+	"MusicServiceBackend/internal/role"
 	"context"
+	"github.com/golang-jwt/jwt"
 	"time"
 )
+
+type JWTClaims struct {
+	jwt.StandardClaims
+	Id     int      `json:"id"`
+	Scopes []string `json:"scopes" json:"scopes"`
+	Role   role.Role
+}
 
 func getJWTKey(token string) string {
 	return token
