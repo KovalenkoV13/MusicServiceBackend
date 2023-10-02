@@ -25,8 +25,15 @@ type loggerConfig struct {
 	Level    int
 }
 
+type RedisConfig struct {
+	Addr     string
+	Password string
+	DB       int
+}
+
 type Config struct {
 	DB     dbConfig
 	App    appConfig
 	Logger loggerConfig
+	Redis  RedisConfig
 }
