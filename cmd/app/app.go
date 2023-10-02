@@ -59,7 +59,7 @@ func NewApp(ctx context.Context) (*Application, error) {
 	log.Printf("PostgreSQL запущена на localhost:5432 \n")
 
 	//Запуск redis
-	redisClient, err := redisCL.New(ctx)
+	redisClient, err := redisCL.New(ctx, cfg.Redis.Addr, cfg.Redis.Password, cfg.Redis.DB)
 	if err != nil {
 		log.Fatalf("redis can't connect: %s", err)
 		return nil, err
