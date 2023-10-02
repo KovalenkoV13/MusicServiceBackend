@@ -1,7 +1,7 @@
 package main
 
 import (
-	"MusicServiceBackend/internal/interfaces/controller"
+	redisCL "MusicServiceBackend/internal/redis"
 	"MusicServiceBackend/internal/role"
 	"errors"
 	"fmt"
@@ -32,7 +32,7 @@ func (a *Application) WithAuthCheck(next http.Handler, assignedRoles ...role.Rol
 			return
 		}
 
-		token, err := jwt.ParseWithClaims(jwtStr, &controller.JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
+		token, err := jwt.ParseWithClaims(jwtStr, &redisCL.JWTClaims{}, func(token *jwt.Token) (interface{}, error) {
 			return []byte("MusicService"), nil
 		})
 		if err != nil {
@@ -40,7 +40,7 @@ func (a *Application) WithAuthCheck(next http.Handler, assignedRoles ...role.Rol
 			return
 		}
 
-		myClaims := token.Claims.(*controller.JWTClaims)
+		myClaims := token.Claims.(*redisCL.JWTClaims)
 
 		for _, oneOfAssignedRole := range assignedRoles {
 			if myClaims.Role == oneOfAssignedRole {
@@ -50,10 +50,8 @@ func (a *Application) WithAuthCheck(next http.Handler, assignedRoles ...role.Rol
 			}
 		}
 		if f != true {
-			fmt.Println("kfdnfdk")
 			http.Error(w, "Forbidden", http.StatusForbidden)
 		}
-		log.Printf("role %s is not assigned in %s", myClaims.Role, assignedRoles)
 		return
 	})
 }
