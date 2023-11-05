@@ -4,7 +4,7 @@
 // - protoc             v3.21.12
 // source: internal/protos/MusicService.proto
 
-package __
+package protos
 
 import (
 	context "context"

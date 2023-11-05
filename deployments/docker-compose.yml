@@ -2,7 +2,8 @@ version: "3.9"
 
 services:
   postgres:
-    image: postgres
+    container_name: postgres
+    image: bitnami/postgresql:14.9.0
     environment:
       POSTGRES_DB: MusicService
       POSTGRES_USER: postgres
@@ -11,23 +12,30 @@ services:
       - ./init:/docker-entrypoint-initdb.d
     ports:
       - "5432:5432"
-  swagger-ui:
-    image: swaggerapi/swagger-ui
-    container_name: swagger_ui_container
-    ports:
-      - "80:8080"
-    volumes:
-      - ./doc:/usr/share/nginx/html/doc
-    environment:
-      API_URL: doc/openapi.yaml
+    networks:
+      - musicnetwork
   redis:
+    container_name: redis
     image: redis:6.2-alpine
     restart: always
     ports:
       - '6379:6379'
+    networks:
+      - musicnetwork
     command: redis-server --save 20 1 --loglevel warning --requirepass password
     volumes:
       - redis-data:/data
+  app:
+    build: ../
+    ports:
+      - "8080:8080"
+    networks:
+      - musicnetwork
+    depends_on:
+      - postgres
 volumes:
   redis-data:
     driver: local
+networks:
+  musicnetwork:
+    driver: bridge

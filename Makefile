@@ -1,11 +1,8 @@
+run:
+	 cd deployments/ && docker-compose up -d
 build:
-	go build -o MusicServiceBackend/cmd/app/main.go
+	 cd deployments/ && docker-compose up --build
+stop:
+	 cd deployments/ && docker-compose down -v
 
 
-build-docker:
-	cd deployments/init
-	docker-compose up --build
-
-run-docker:
-	cd deployments/init
-	docker-compose up -d

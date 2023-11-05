@@ -4,5 +4,8 @@ import "context"
 
 func main() {
 	ctx := context.Background()
-	NewApp(ctx)
+	_, err := NewApp(ctx)
+	if err != nil {
+		return
+	}
 }

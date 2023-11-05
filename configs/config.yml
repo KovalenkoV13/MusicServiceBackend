@@ -1,5 +1,5 @@
 DB:
-  Host: "localhost"
+  Host: "postgres"
   Username: "postgres"
   Password: "postgrespw"
   DBName: "MusicService"
@@ -21,6 +21,6 @@ Logger:
   Level: 6
 
 Redis:
-  Addr: "127.0.0.1:6379"
+  Addr: "redis:6379"
   Password: "password"
   DB: 0
