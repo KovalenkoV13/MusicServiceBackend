@@ -12,6 +12,11 @@ services:
       - ./init:/docker-entrypoint-initdb.d
     ports:
       - "5432:5432"
+    healthcheck:
+      test: [ "CMD-SHELL", "pg_isready -d WatchBox -U postgres" ]
+      interval: 5s
+      timeout: 5s
+      retries: 5
     networks:
       - musicnetwork
   redis:
@@ -32,7 +37,8 @@ services:
     networks:
       - musicnetwork
     depends_on:
-      - postgres
+      postgres:
+        condition: service_healthy
 volumes:
   redis-data:
     driver: local
